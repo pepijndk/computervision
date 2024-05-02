@@ -8,3 +8,4 @@ dependencies:
   - numpy
   - tqdm
   - tensorboard>=1.14
+  - pandas
