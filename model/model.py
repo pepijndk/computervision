@@ -1,7 +1,10 @@
 # import torch
 # import torch.nn.functional as F
+import numpy as np
 import tensorlayerx as tlx
 import tensorlayerx.nn as nn
+import torch
+
 from base import BaseModel
 
 W_init = tlx.initializers.TruncatedNormal(stddev=0.02)
@@ -10,6 +13,7 @@ G_init = tlx.initializers.TruncatedNormal(mean=1.0, stddev=0.02)
 
 class ResidualBlock(nn.Module):
     def __init__(self):
+        super().__init__()
         self.conv1 = nn.Conv2d(out_channels=64, kernel_size=(3, 3), stride=(1, 1), act=None, padding='SAME',
                                W_init=W_init, data_format='channels_first', b_init=None)
         self.bn1 = nn.BatchNorm2d(num_features=64, act=tlx.ReLU, gamma_init=G_init, data_format='channels_first')
@@ -33,7 +37,7 @@ class Generator(BaseModel):
         self.conv1 = nn.Conv2d(
             out_channels=64, kernel_size=(3, 3), stride=(1, 1), act=tlx.ReLU, padding='SAME', W_init=W_init,
             data_format='channels_first')
-        self.residual_block = self.make_blocks(number_of_blocks)
+        self.residual_block = make_blocks(number_of_blocks)
         self.conv2 = nn.Conv2d(
             out_channels=64, kernel_size=(3, 3), stride=(1, 1), padding='SAME', W_init=W_init,
             data_format='channels_first', b_init=None)
@@ -151,6 +155,13 @@ class Discriminator(BaseModel):
 
 
 def make_blocks(n):
-    blocks = [ResidualBlock() for _ in n]
+    blocks = [ResidualBlock() for _ in range(n)]
     blocks = nn.Sequential(blocks)
     return blocks
+
+
+if __name__ == "__main__":
+    gen = Generator()
+    dummy_input = tlx.convert_to_tensor(np.ones((3, 300, 300)), dtype=tlx.float32)
+    dummy_output = gen(dummy_input)
+    print(dummy_output)
